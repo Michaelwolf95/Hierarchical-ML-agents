@@ -664,7 +664,7 @@ namespace MLAgents
         /// Increases the size of the agents vector observation by 1.
         /// </summary>
         /// <param name="observation">Observation.</param>
-        protected void AddVectorObs(float observation)
+        public void AddVectorObs(float observation)
         {
             info.vectorObservation.Add(observation);
         }
@@ -674,7 +674,7 @@ namespace MLAgents
         /// Increases the size of the agents vector observation by 1.
         /// </summary>
         /// <param name="observation">Observation.</param>
-        protected void AddVectorObs(int observation)
+        public void AddVectorObs(int observation)
         {
             info.vectorObservation.Add(observation);
         }
@@ -684,7 +684,7 @@ namespace MLAgents
         /// Increases the size of the agents vector observation by 3.
         /// </summary>
         /// <param name="observation">Observation.</param>
-        protected void AddVectorObs(Vector3 observation)
+        public void AddVectorObs(Vector3 observation)
         {
             info.vectorObservation.Add(observation.x);
             info.vectorObservation.Add(observation.y);
@@ -696,7 +696,7 @@ namespace MLAgents
         /// Increases the size of the agents vector observation by 2.
         /// </summary>
         /// <param name="observation">Observation.</param>
-        protected void AddVectorObs(Vector2 observation)
+        public void AddVectorObs(Vector2 observation)
         {
             info.vectorObservation.Add(observation.x);
             info.vectorObservation.Add(observation.y);
@@ -707,7 +707,7 @@ namespace MLAgents
         /// Increases the size of the agents vector observation by size of array.
         /// </summary>
         /// <param name="observation">Observation.</param>
-        protected void AddVectorObs(float[] observation)
+        public void AddVectorObs(float[] observation)
         {
             info.vectorObservation.AddRange(observation);
         }
@@ -717,7 +717,7 @@ namespace MLAgents
         /// Increases the size of the agents vector observation by size of list.
         /// </summary>
         /// <param name="observation">Observation.</param>
-        protected void AddVectorObs(List<float> observation)
+        public void AddVectorObs(List<float> observation)
         {
             info.vectorObservation.AddRange(observation);
         }
@@ -727,7 +727,7 @@ namespace MLAgents
         /// Increases the size of the agents vector observation by 4.
         /// </summary>
         /// <param name="observation">Observation.</param>
-        protected void AddVectorObs(Quaternion observation)
+        public void AddVectorObs(Quaternion observation)
         {
             info.vectorObservation.Add(observation.x);
             info.vectorObservation.Add(observation.y);
@@ -740,12 +740,12 @@ namespace MLAgents
         /// Increases the size of the agent's vector observation by 1.
         /// </summary>
         /// <param name="observation"></param>
-        protected void AddVectorObs(bool observation)
+        public void AddVectorObs(bool observation)
         {
             info.vectorObservation.Add(observation ? 1f : 0f);
         }
 
-        protected void AddVectorObs(int observation, int range)
+        public void AddVectorObs(int observation, int range)
         {
             float[] oneHotVector = new float[range];
             oneHotVector[observation] = 1;

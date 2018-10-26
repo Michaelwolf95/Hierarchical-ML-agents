@@ -1,18 +1,33 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MLAgents;
+using Random = UnityEngine.Random;
+using HutongGames.PlayMaker;
+
+public enum WallGenerationMode
+{
+    Default,
+    SmallOnly,
+    BigOnly,
+    NoWall
+}
 
 public class WallJumpFSMAgent : Agent
 {
+    public Action OnCollectObservations = delegate {  };
+    public Action<float[], string> OnAgentAction = delegate(float[] vectorAction, string stringAction) {  };
+    
+    public Action OnAgentReset = delegate {  };
+
+    public PlayMakerFSM playmakerFsm;
+
+    // Specific mode training.
+    public WallGenerationMode wallGenerationMode = WallGenerationMode.Default;
+    
     // Depending on this value, the wall will have different height
     int configuration;
-    // Brain to use when no wall is present
-    public Brain noWallBrain;
-    // Brain to use when a jumpable wall is present
-    public Brain smallWallBrain;
-    // Brain to use when a wall requiring a block to jump over is present
-    public Brain bigWallBrain;
 
     public GameObject ground;
     public GameObject spawnArea;
@@ -43,6 +58,9 @@ public class WallJumpFSMAgent : Agent
 
     public override void InitializeAgent()
     {
+        playmakerFsm = this.gameObject.GetComponent<PlayMakerFSM>();
+        playmakerFsm.SendEvent("PAUSE");
+        
         academy = FindObjectOfType<WallJumpFSMAcademy>();
         rayPer = GetComponent<RayPerception>();
         configuration = Random.Range(0, 5);
@@ -141,6 +159,13 @@ public class WallJumpFSMAgent : Agent
 
     public override void CollectObservations()
     {
+        OnCollectObservations();
+    }
+
+    // Separate observations for the moving behaviors.
+    // Subscribed to the OnCollectObservations event in the appropriate state.
+    public void CollectPhysicalObservations()
+    {
         float rayDistance = 20f;
         float[] rayAngles = { 0f, 45f, 90f, 135f, 180f, 110f, 70f };
         AddVectorObs(rayPer.Perceive(
@@ -152,6 +177,8 @@ public class WallJumpFSMAgent : Agent
         AddVectorObs(agentPos / 20f);
         AddVectorObs(DoGroundCheck(true) ? 1 : 0);
     }
+    
+    
 
     /// <summary>
     /// Gets a random spawn position in the spawningArea.
@@ -241,7 +268,13 @@ public class WallJumpFSMAgent : Agent
 
     public override void AgentAction(float[] vectorAction, string textAction)
     {
-        MoveAgent(vectorAction);
+        if (OnAgentAction != null)
+        {
+            OnAgentAction(vectorAction, textAction);
+        }
+        
+        //MoveAgent(vectorAction);
+        
         if ((!Physics.Raycast(agentRB.position, Vector3.down, 20))
             || (!Physics.Raycast(shortBlockRB.position, Vector3.down, 20)))
         {
@@ -260,8 +293,7 @@ public class WallJumpFSMAgent : Agent
         {
             SetReward(1f);
             Done();
-            StartCoroutine(
-                GoalScoredSwapGroundMaterial(academy.goalScoredMaterial, 2));
+            StartCoroutine(GoalScoredSwapGroundMaterial(academy.goalScoredMaterial, 2));
         }
     }
 
@@ -275,10 +307,14 @@ public class WallJumpFSMAgent : Agent
 
     public override void AgentReset()
     {
+        //Debug.Log("Resetting Agent...");
+        playmakerFsm.SendEvent("PAUSE");
+        configuration = GetWallConfig();
+        
         ResetBlock(shortBlockRB);
         transform.localPosition = new Vector3(
             18 * (Random.value - 0.5f), 1, -12);
-        configuration = Random.Range(0, 5);
+        
         agentRB.velocity = default(Vector3);
 
     }
@@ -287,8 +323,11 @@ public class WallJumpFSMAgent : Agent
     {
         if (configuration != -1)
         {
-            ConfigureAgent(configuration);
+            //Debug.Log("Configuring in Fixed Update");
+            //ConfigureAgent(configuration);
+            ConfigureWall(configuration);
             configuration = -1;
+            playmakerFsm.SendEvent("RESUME");
         }
     }
 
@@ -300,7 +339,7 @@ public class WallJumpFSMAgent : Agent
     /// If 0 : No wall and noWallBrain.
     /// If 1:  Small wall and smallWallBrain.
     /// Other : Tall wall and BigWallBrain. </param>
-    void ConfigureAgent(int config)
+    void ConfigureWall(int config)
     {
         if (config == 0)
         {
@@ -308,7 +347,8 @@ public class WallJumpFSMAgent : Agent
                 wall.transform.localScale.x,
                 academy.resetParameters["no_wall_height"],
                 wall.transform.localScale.z);
-            GiveBrain(noWallBrain);
+            
+            //GiveBrain(noWallBrain);
         }
         else if (config == 1)
         {
@@ -316,20 +356,41 @@ public class WallJumpFSMAgent : Agent
                 wall.transform.localScale.x,
                 academy.resetParameters["small_wall_height"],
                 wall.transform.localScale.z);
-            GiveBrain(smallWallBrain);
+            
+            //GiveBrain(smallWallBrain);
         }
         else
         {
             float height =
                 academy.resetParameters["big_wall_min_height"] +
                 Random.value * (academy.resetParameters["big_wall_max_height"] -
-                academy.resetParameters["big_wall_min_height"]);
+                                academy.resetParameters["big_wall_min_height"]);
+            
             wall.transform.localScale = new Vector3(
                 wall.transform.localScale.x,
                 height,
                 wall.transform.localScale.z);
-            GiveBrain(bigWallBrain);
+            
+            //GiveBrain(bigWallBrain);
         }
     }
+
+    private int GetWallConfig()
+    {
+        switch (wallGenerationMode)
+        {
+            case WallGenerationMode.SmallOnly:
+                return 1;
+            case WallGenerationMode.BigOnly:
+                return 2;
+            case WallGenerationMode.NoWall:
+                return 0;
+            default:
+                return Random.Range(0, 5);
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+        
+       
 }
 
