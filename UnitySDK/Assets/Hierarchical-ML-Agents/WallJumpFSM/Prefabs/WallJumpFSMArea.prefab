@@ -706,6 +706,7 @@ MonoBehaviour:
     onDemandDecision: 0
     numberOfActionsBetweenDecisions: 5
   playmakerFsm: {fileID: 0}
+  wallGenerationMode: 0
   ground: {fileID: 1409465259168996}
   spawnArea: {fileID: 1697311812605606}
   goal: {fileID: 1237460326262010}
@@ -752,7 +753,7 @@ MonoBehaviour:
           name: FINISHED
           isSystemEvent: 1
           isGlobal: 0
-        toState: BigWall
+        toState: DecideBehaviour
         linkStyle: 0
         linkConstraint: 0
         colorIndex: 0

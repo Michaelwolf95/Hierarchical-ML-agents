@@ -396,8 +396,10 @@ namespace MLAgents
             Screen.SetResolution(config.width, config.height, false);
             QualitySettings.SetQualityLevel(config.qualityLevel, true);
             Time.timeScale = config.timeScale;
+            Debug.Log("TimeScale: " + Time.timeScale + ", " + config.timeScale);
             Time.captureFramerate = 60;
             Application.targetFrameRate = config.targetFrameRate;
+            Debug.Log("TimeScale: " + Time.timeScale);
         }
 
         /// <summary>
